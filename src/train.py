@@ -60,7 +60,7 @@ class ProjectAgent:
 
     def save(self, path="fqi_agent.pkl"):
         """Save the model after training it."""
-        for episode in range(300):
+        for episode in range(100):
             state, _ = env.reset()
             done, trunc = False, False
             while not (done or trunc):
