@@ -12,8 +12,6 @@ env = TimeLimit(
     env=HIVPatient(domain_randomization=False), max_episode_steps=200
 ) 
 
-
-
 class ProjectAgent:
     def __init__(self, env = env, model=None, gamma=0.99, buffer_size=100000, min_samples=100, batch_size = 10000):
         self.env = env
