@@ -3,8 +3,10 @@ from env_hiv import HIVPatient
 import numpy as np
 import pickle
 from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor as xgb
 from collections import deque
 from evaluate import evaluate_HIV, evaluate_HIV_population
+import random
 
 env = TimeLimit(
     env=HIVPatient(domain_randomization=False), max_episode_steps=200
@@ -13,11 +15,16 @@ env = TimeLimit(
 
 
 class ProjectAgent:
-    def __init__(self, env = env, model=None, gamma=0.99, buffer_size=10000, min_samples=100):
+    def __init__(self, env = env, model=None, gamma=0.99, buffer_size=100000, min_samples=100, batch_size = 10000):
         self.env = env
+        self.batch_size = batch_size # Batch size for training
         self.gamma = gamma # Discount factor
         self.replay_buffer = deque(maxlen=buffer_size) # Replay buffer
-        self.model = model if model else RandomForestRegressor(n_estimators=100) # Model
+        self.model = model if model else xgb(n_estimators=200, 
+            learning_rate=0.1, 
+            max_depth=7, 
+            tree_method="hist",  # Change to "gpu_hist" if using GPU
+            objective="reg:squarederror") # Model
         self.min_samples = min_samples # Minimum number of samples to train the model
         self.fitted = False # Set to True after the first training
         self.save()
@@ -38,9 +45,11 @@ class ProjectAgent:
         """Train the model on the replay buffer."""
         if len(self.replay_buffer) < self.min_samples:
             return # Not enough samples to train the model
-
+        
+        batch_size = min(self.batch_size, len(self.replay_buffer)) # Adjust batch size if necessary
+        batch = random.sample(self.replay_buffer, batch_size)  # Mini-batch
         X, y = [], [] # Features and targets
-        for state, action, reward, next_state, done, trunc in self.replay_buffer: # Iterate over the replay buffer
+        for state, action, reward, next_state, done, trunc in batch: # Iterate over the replay buffer
             state_action = np.hstack([state, action]).reshape(1, -1) # State-action pair
 
             if done or trunc: # Terminal state
@@ -60,7 +69,7 @@ class ProjectAgent:
 
     def save(self, path="fqi_agent.pkl"):
         """Save the model after training it."""
-        for episode in range(100):
+        for episode in range(200):
             state, _ = env.reset()
             done, trunc = False, False
             while not (done or trunc):
