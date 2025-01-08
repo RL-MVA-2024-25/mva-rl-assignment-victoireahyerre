@@ -17,7 +17,7 @@ class ProjectAgent:
         self.env = env
         self.gamma = gamma # Discount factor
         self.replay_buffer = deque(maxlen=buffer_size) # Replay buffer
-        self.model = model if model else RandomForestRegressor(n_estimators=200) # Model
+        self.model = model if model else RandomForestRegressor(n_estimators=100) # Model
         self.min_samples = min_samples # Minimum number of samples to train the model
         self.fitted = False # Set to True after the first training
         self.save()
