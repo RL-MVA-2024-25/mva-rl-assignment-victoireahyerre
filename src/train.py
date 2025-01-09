@@ -26,7 +26,6 @@ class ProjectAgent:
             objective="reg:squarederror") # Model
         self.min_samples = min_samples # Minimum number of samples to train the model
         self.fitted = False # Set to True after the first training
-        self.save()
 
     def act(self, observation, use_random=False):
         """Select an action based on the observation."""
@@ -68,7 +67,7 @@ class ProjectAgent:
 
     def save(self, path="fqi_agent.pkl"):
         """Save the model after training it."""
-        for episode in range(200):
+        for episode in range(500):
             state, _ = env.reset()
             done, trunc = False, False
             while not (done or trunc):
@@ -85,6 +84,10 @@ class ProjectAgent:
 
     def load(self, path="fqi_agent.pkl"):
         """Load the model."""
+        self.fitted = True
         with open(path, "rb") as f:
             self.model = pickle.load(f)
         print("Model loaded")
+
+#agent = ProjectAgent()
+#agent.save()
